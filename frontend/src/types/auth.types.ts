@@ -29,3 +29,21 @@ export interface OtpVerifyPayload {
   phone: string;
   otp: string;
 }
+
+export interface RegisterUserPayload {
+  schoolCode: string;
+  roleCode: RoleCode;
+  phone: string;
+  fullName: string;
+  email?: string;
+  pinOrPassword: string;
+}
+
+export interface RegisterSchoolPayload {
+  schoolName: string;
+  schoolCode: string;
+  adminFullName: string;
+  adminPhone: string;
+  adminEmail?: string;
+  adminPassword: string;
+}

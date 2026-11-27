@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   ForbiddenException,
   Injectable,
   UnauthorizedException,
@@ -10,8 +11,15 @@ import { PrismaService } from '@config/prisma.service';
 import { PermissionsService } from '@core/permissions/permissions.service';
 import { RoleCode } from '@shared/enums';
 import { AuthUser } from '@shared/interfaces';
-import { generateNumericOtp, sha256, verifySecret } from '@shared/utils';
-import { LoginDto, RefreshTokenDto, RequestOtpDto, VerifyOtpDto } from './auth.dto';
+import { generateNumericOtp, hashSecret, sha256, verifySecret } from '@shared/utils';
+import {
+  LoginDto,
+  RefreshTokenDto,
+  RegisterSchoolDto,
+  RegisterUserDto,
+  RequestOtpDto,
+  VerifyOtpDto,
+} from './auth.dto';
 
 @Injectable()
 export class AuthService {
@@ -142,6 +150,142 @@ export class AuthService {
       throw new UnauthorizedException('Invalid mobile number or PIN/password.');
     }
     return this.issueSession(user.id, dto.fcmToken);
+  }
+
+  async registerUser(dto: RegisterUserDto) {
+    if (dto.roleCode === RoleCode.SUPER_ADMIN) {
+      throw new ForbiddenException('Cannot self-register as Platform Super Admin.');
+    }
+
+    const school = await this.resolveSchoolByCode(dto.schoolCode);
+    if (!school) {
+      throw new BadRequestException('A valid school code is required.');
+    }
+
+    const role = await this.prisma.role.findUnique({
+      where: { code: dto.roleCode },
+    });
+    if (!role) {
+      throw new BadRequestException(`Role "${dto.roleCode}" is not recognized.`);
+    }
+
+    const cleanPhone = this.normalizePhone(dto.phone);
+    const existing = await this.prisma.user.findFirst({
+      where: { schoolId: school.id, phone: cleanPhone },
+    });
+    if (existing) {
+      throw new ConflictException('A user with this mobile number is already registered in this school.');
+    }
+
+    const pinOrPasswordHash = await hashSecret(dto.pinOrPassword);
+
+    const createdUserId = await this.prisma.$transaction(async (tx) => {
+      const user = await tx.user.create({
+        data: {
+          schoolId: school.id,
+          roleId: role.id,
+          phone: cleanPhone,
+          fullName: dto.fullName.trim(),
+          email: dto.email?.trim() || null,
+          pinOrPasswordHash,
+          isPreRegistered: true,
+          isActive: true,
+        },
+      });
+
+      if (dto.roleCode === RoleCode.TEACHER) {
+        await tx.staffProfile.create({
+          data: {
+            schoolId: school.id,
+            userId: user.id,
+            employeeCode: `EMP-${cleanPhone.slice(-6)}`,
+            designation: 'Teacher',
+            isTeacher: true,
+            isActive: true,
+          },
+        });
+      }
+
+      return user.id;
+    });
+
+    return this.issueSession(createdUserId, dto.fcmToken);
+  }
+
+  async registerSchool(dto: RegisterSchoolDto) {
+    const normalizedCode = dto.schoolCode.trim().toUpperCase();
+    const existingSchool = await this.prisma.school.findUnique({
+      where: { schoolCode: normalizedCode },
+    });
+    if (existingSchool) {
+      throw new ConflictException(`School code "${normalizedCode}" is already registered.`);
+    }
+
+    const schoolAdminRole = await this.prisma.role.findUnique({
+      where: { code: RoleCode.SCHOOL_ADMIN },
+    });
+    if (!schoolAdminRole) {
+      throw new BadRequestException('SCHOOL_ADMIN role configuration missing.');
+    }
+
+    const cleanAdminPhone = this.normalizePhone(dto.adminPhone);
+    const adminPasswordHash = await hashSecret(dto.adminPassword);
+
+    const createdAdminUserId = await this.prisma.$transaction(async (tx) => {
+      const school = await tx.school.create({
+        data: {
+          schoolCode: normalizedCode,
+          name: dto.schoolName.trim(),
+          primaryColor: '#0F294A',
+          accentColor: '#D97706',
+          contactPhone: cleanAdminPhone,
+          contactEmail: dto.adminEmail?.trim() || null,
+          subscriptionStatus: 'ACTIVE',
+          subscriptionPlan: 'ANNUAL_5999',
+        },
+      });
+
+      const currentYear = new Date().getUTCFullYear();
+      await tx.academicYear.create({
+        data: {
+          schoolId: school.id,
+          name: `${currentYear}-${currentYear + 1}`,
+          startDate: new Date(Date.UTC(currentYear, 5, 1)),
+          endDate: new Date(Date.UTC(currentYear + 1, 3, 30)),
+          isCurrent: true,
+        },
+      });
+
+      const defaultScales = [
+        { gradeLabel: 'A+', minPercentage: 90, maxPercentage: 100, remarks: 'Outstanding' },
+        { gradeLabel: 'A', minPercentage: 80, maxPercentage: 89.99, remarks: 'Excellent' },
+        { gradeLabel: 'B+', minPercentage: 70, maxPercentage: 79.99, remarks: 'Very Good' },
+        { gradeLabel: 'B', minPercentage: 60, maxPercentage: 69.99, remarks: 'Good' },
+        { gradeLabel: 'C', minPercentage: 50, maxPercentage: 59.99, remarks: 'Satisfactory' },
+        { gradeLabel: 'D', minPercentage: 35, maxPercentage: 49.99, remarks: 'Needs Improvement' },
+        { gradeLabel: 'F', minPercentage: 0, maxPercentage: 34.99, remarks: 'Fail' },
+      ];
+      await tx.gradeScale.createMany({
+        data: defaultScales.map((s) => ({ schoolId: school.id, ...s })),
+      });
+
+      const user = await tx.user.create({
+        data: {
+          schoolId: school.id,
+          roleId: schoolAdminRole.id,
+          phone: cleanAdminPhone,
+          fullName: dto.adminFullName.trim(),
+          email: dto.adminEmail?.trim() || null,
+          pinOrPasswordHash: adminPasswordHash,
+          isPreRegistered: true,
+          isActive: true,
+        },
+      });
+
+      return user.id;
+    });
+
+    return this.issueSession(createdAdminUserId, dto.fcmToken);
   }
 
   async refresh(dto: RefreshTokenDto) {

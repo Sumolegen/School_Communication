@@ -1,4 +1,13 @@
-import { LoginPayload, OtpRequestPayload, OtpVerifyPayload, SchoolConfig, StudentRecord, UserSession } from '@/types';
+import {
+  LoginPayload,
+  OtpRequestPayload,
+  OtpVerifyPayload,
+  RegisterSchoolPayload,
+  RegisterUserPayload,
+  SchoolConfig,
+  StudentRecord,
+  UserSession,
+} from '@/types';
 import { apiClient } from './api';
 
 export interface AuthSessionResponse {
@@ -11,6 +20,16 @@ export interface AuthSessionResponse {
 }
 
 export const authService = {
+  signupUser: async (payload: RegisterUserPayload) => {
+    const { data } = await apiClient.post<AuthSessionResponse>('/auth/signup', payload);
+    return data;
+  },
+
+  signupSchool: async (payload: RegisterSchoolPayload) => {
+    const { data } = await apiClient.post<AuthSessionResponse>('/auth/signup-school', payload);
+    return data;
+  },
+
   requestOtp: async (payload: OtpRequestPayload) => {
     const { data } = await apiClient.post<{
       message: string;

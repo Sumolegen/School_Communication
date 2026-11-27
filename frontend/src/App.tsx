@@ -34,6 +34,7 @@ import { ParentCommunicationPage } from './app/communication/parent-communicatio
 import { PhotosPage } from './app/communication/photos/PhotosPage';
 import { DashboardPage } from './app/dashboard/DashboardPage';
 import { LoginPage } from './app/login/LoginPage';
+import { SignUpPage } from './app/signup/SignUpPage';
 import { ProfilePage } from './app/profile/ProfilePage';
 import { StaffPage } from './app/staff/StaffPage';
 import { StudentsPage } from './app/students/StudentsPage';
@@ -48,6 +49,7 @@ export const App: React.FC = () => (
             <AcademicsProvider>
               <Routes>
                 <Route path={ROUTES.LOGIN} element={<LoginPage />} />
+                <Route path={ROUTES.SIGNUP} element={<SignUpPage />} />
                 <Route
                   element={
                     <RoleGuard>

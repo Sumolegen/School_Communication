@@ -270,9 +270,29 @@ export const LoginPage: React.FC = () => {
 
         <div
           style={{
-            marginTop: 18,
-            paddingTop: 14,
+            marginTop: 20,
+            paddingTop: 16,
             borderTop: '1px solid var(--border-color)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            fontSize: '0.86rem',
+          }}
+        >
+          <span style={{ color: 'var(--text-secondary)' }}>Don't have an account?</span>
+          <button
+            type="button"
+            className="btn btn-outline"
+            style={{ padding: '6px 14px', fontSize: '0.84rem' }}
+            onClick={() => navigate(ROUTES.SIGNUP)}
+          >
+            Sign Up
+          </button>
+        </div>
+
+        <div
+          style={{
+            marginTop: 14,
             fontSize: '0.78rem',
             color: 'var(--text-muted)',
             display: 'flex',
@@ -281,7 +301,7 @@ export const LoginPage: React.FC = () => {
           }}
         >
           <ShieldCheck size={15} color="var(--brand-accent)" />
-          <span>Only School-Admin pre-registered numbers can sign in.</span>
+          <span>School Admins, Teachers, Parents and Students can sign in or register.</span>
         </div>
       </div>
     </div>

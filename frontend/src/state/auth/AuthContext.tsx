@@ -1,6 +1,14 @@
 import React, { createContext, useCallback, useEffect, useMemo, useState } from 'react';
 import { authService, AuthSessionResponse } from '@/services/auth.service';
-import { LoginPayload, OtpVerifyPayload, SchoolConfig, StudentRecord, UserSession } from '@/types';
+import {
+  LoginPayload,
+  OtpVerifyPayload,
+  RegisterSchoolPayload,
+  RegisterUserPayload,
+  SchoolConfig,
+  StudentRecord,
+  UserSession,
+} from '@/types';
 import { applySchoolTheme, tokenStorage } from '@/utils';
 
 export interface AuthContextValue {
@@ -13,6 +21,8 @@ export interface AuthContextValue {
   setActiveStudentId: (studentId: string) => void;
   loginWithPin: (payload: LoginPayload) => Promise<AuthSessionResponse>;
   verifyOtp: (payload: OtpVerifyPayload) => Promise<AuthSessionResponse>;
+  signupUser: (payload: RegisterUserPayload) => Promise<AuthSessionResponse>;
+  signupSchool: (payload: RegisterSchoolPayload) => Promise<AuthSessionResponse>;
   logout: () => Promise<void>;
   refreshSession: () => Promise<void>;
   setSchoolConfig: (school: SchoolConfig) => void;
@@ -96,6 +106,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     [applySessionPayload],
   );
 
+  const signupUser = useCallback(
+    async (payload: RegisterUserPayload) => {
+      const res = await authService.signupUser(payload);
+      tokenStorage.setTokens(res.accessToken, res.refreshToken);
+      applySessionPayload(res);
+      return res;
+    },
+    [applySessionPayload],
+  );
+
+  const signupSchool = useCallback(
+    async (payload: RegisterSchoolPayload) => {
+      const res = await authService.signupSchool(payload);
+      tokenStorage.setTokens(res.accessToken, res.refreshToken);
+      applySessionPayload(res);
+      return res;
+    },
+    [applySessionPayload],
+  );
+
   const logout = useCallback(async () => {
     try {
       if (tokenStorage.getAccessToken()) {
@@ -134,11 +164,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setActiveStudentId,
       loginWithPin,
       verifyOtp,
+      signupUser,
+      signupSchool,
       logout,
       refreshSession,
       setSchoolConfig,
     }),
-    [user, school, students, activeStudent, loading, setActiveStudentId, loginWithPin, verifyOtp, logout, refreshSession, setSchoolConfig],
+    [user, school, students, activeStudent, loading, setActiveStudentId, loginWithPin, verifyOtp, signupUser, signupSchool, logout, refreshSession, setSchoolConfig],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
