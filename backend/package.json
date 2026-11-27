@@ -29,11 +29,7 @@
     "@nestjs/jwt": "^11.0.0",
     "@nestjs/passport": "^11.0.5",
     "@nestjs/platform-express": "^11.0.11",
-<<<<<<< Updated upstream
     "@nestjs/swagger": "^11.4.8",
-=======
-    "@nestjs/swagger": "^11.0.0",
->>>>>>> Stashed changes
     "@prisma/client": "^6.5.0",
     "bcryptjs": "^2.4.3",
     "class-transformer": "^0.5.1",

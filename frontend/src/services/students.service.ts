@@ -41,6 +41,12 @@ export const studentsService = {
     const { data } = await apiClient.post<StudentRecord>('/students/profiles', payload);
     return data;
   },
+  listParents: async () => {
+    const { data } = await apiClient.get<
+      PaginatedResponse<{ id: string; fullName: string; phone: string; email?: string | null }>
+    >('/users', { params: { roleCode: 'PARENT', limit: 100 } });
+    return data.items;
+  },
   linkParent: async (studentId: string, payload: {
     parentPhone: string;
     parentFullName: string;

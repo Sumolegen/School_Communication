@@ -205,7 +205,7 @@ export const AttendancePage: React.FC = () => {
               <div>
                 <strong>{roster.length} Students</strong>{' '}
                 <span style={{ fontSize: '0.84rem', color: 'var(--text-secondary)' }}>
-                  • {alreadySubmitted ? 'Already submitted (tap to update)' : 'Defaulted to Present — tap Absent / Late / Leave only where needed'}
+                  • {alreadySubmitted ? 'Already submitted (tap emoji to update)' : 'Defaulted to Present — tap the yellow smiley emoji to mark Absent'}
                 </span>
               </div>
               <Button variant="accent" onClick={handleSubmitBulk} disabled={submitting}>
@@ -214,58 +214,77 @@ export const AttendancePage: React.FC = () => {
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {roster.map((stu) => (
-                <div
-                  key={stu.studentId}
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    gap: 12,
-                    padding: '10px 12px',
-                    borderRadius: 8,
-                    background: 'var(--bg-muted)',
-                    flexWrap: 'wrap',
-                  }}
-                >
-                  <div>
-                    <strong>{stu.fullName}</strong>
-                    <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                      Roll #{stu.rollNo || '—'} • Adm #{stu.admissionNo}
+              {roster.map((stu) => {
+                const isAbsent = stu.status === 'ABSENT';
+                return (
+                  <div
+                    key={stu.studentId}
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      gap: 12,
+                      padding: '10px 14px',
+                      borderRadius: 8,
+                      background: isAbsent ? '#fef2f2' : 'var(--bg-muted)',
+                      border: isAbsent ? '1px solid #fecaca' : '1px solid transparent',
+                      flexWrap: 'wrap',
+                    }}
+                  >
+                    <div>
+                      <strong>{stu.fullName}</strong>
+                      <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                        Roll #{stu.rollNo || '—'} • Adm #{stu.admissionNo}
+                      </div>
                     </div>
+                    <button
+                      type="button"
+                      onClick={() => updateStudentStatus(stu.studentId, isAbsent ? 'PRESENT' : 'ABSENT')}
+                      aria-label={isAbsent ? `${stu.fullName} is Absent — click to mark Present` : `${stu.fullName} is Present — click to mark Absent`}
+                      title={isAbsent ? 'Absent (click to mark Present)' : 'Present (click to mark Absent)'}
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: 44,
+                        height: 44,
+                        borderRadius: '50%',
+                        border: isAbsent ? '2px solid #dc2626' : '2px solid #eab308',
+                        background: isAbsent ? '#fee2e2' : '#fef9c3',
+                        cursor: 'pointer',
+                        padding: 0,
+                        transition: 'transform 0.12s ease, background 0.15s ease',
+                      }}
+                    >
+                      {isAbsent ? (
+                        <svg width="28" height="28" viewBox="0 0 36 36" fill="none" aria-hidden="true">
+                          <circle cx="18" cy="18" r="16" fill="#EF4444" />
+                          <circle cx="12.5" cy="14" r="2.1" fill="#FFFFFF" />
+                          <circle cx="23.5" cy="14" r="2.1" fill="#FFFFFF" />
+                          <path
+                            d="M11.5 25C13.2 21.8 22.8 21.8 24.5 25"
+                            stroke="#FFFFFF"
+                            strokeWidth="2.6"
+                            strokeLinecap="round"
+                          />
+                        </svg>
+                      ) : (
+                        <svg width="28" height="28" viewBox="0 0 36 36" fill="none" aria-hidden="true">
+                          <circle cx="18" cy="18" r="16" fill="#FACC15" />
+                          <circle cx="12.5" cy="14" r="2.1" fill="#713F12" />
+                          <circle cx="23.5" cy="14" r="2.1" fill="#713F12" />
+                          <path
+                            d="M11.5 21.5C13.2 25.5 22.8 25.5 24.5 21.5"
+                            stroke="#713F12"
+                            strokeWidth="2.6"
+                            strokeLinecap="round"
+                          />
+                        </svg>
+                      )}
+                    </button>
                   </div>
-                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                    {(['PRESENT', 'ABSENT', 'LATE', 'LEAVE'] as AttendanceStatus[]).map((st) => {
-                      const selected = stu.status === st;
-                      return (
-                        <button
-                          key={st}
-                          type="button"
-                          onClick={() => updateStudentStatus(stu.studentId, st)}
-                          className="btn"
-                          style={{
-                            padding: '6px 12px',
-                            fontSize: '0.8rem',
-                            background: selected
-                              ? st === 'PRESENT'
-                                ? '#166534'
-                                : st === 'ABSENT'
-                                  ? '#991b1b'
-                                  : st === 'LATE'
-                                    ? '#d97706'
-                                    : '#1e40af'
-                              : '#ffffff',
-                            color: selected ? '#ffffff' : 'var(--text-primary)',
-                            borderColor: 'var(--border-color)',
-                          }}
-                        >
-                          {st}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )

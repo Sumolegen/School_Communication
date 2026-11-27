@@ -136,6 +136,9 @@ export class ProfilesService {
       }
 
       const cleanGuardianPhone = dto.guardianPhone?.replace(/[\s\-+]/g, '');
+      if (dto.parentFullName?.trim() && !cleanGuardianPhone) {
+        throw new BadRequestException('Parent mobile number (guardianPhone) is required when parentFullName is provided.');
+      }
 
       const student = await tx.studentProfile.create({
         data: {
@@ -169,6 +172,11 @@ export class ProfilesService {
               isPreRegistered: true,
               isActive: true,
             },
+          });
+        } else if (dto.parentFullName?.trim() && parentUser.fullName.startsWith('Parent of ')) {
+          parentUser = await tx.user.update({
+            where: { id: parentUser.id },
+            data: { fullName: dto.parentFullName.trim() },
           });
         }
         await tx.parentStudentLink.upsert({
@@ -250,6 +258,18 @@ export class ProfilesService {
             isPreRegistered: true,
             isActive: true,
           },
+        });
+      } else if (dto.parentFullName?.trim() && parentUser.fullName !== dto.parentFullName.trim()) {
+        parentUser = await tx.user.update({
+          where: { id: parentUser.id },
+          data: { fullName: dto.parentFullName.trim() },
+        });
+      }
+
+      if (!student.guardianPhone || dto.isPrimary !== false) {
+        await tx.studentProfile.update({
+          where: { id: studentId },
+          data: { guardianPhone: cleanPhone },
         });
       }
 
