@@ -1,0 +1,7 @@
+export enum RoleCode {
+  SUPER_ADMIN = 'SUPER_ADMIN',
+  SCHOOL_ADMIN = 'SCHOOL_ADMIN',
+  TEACHER = 'TEACHER',
+  PARENT = 'PARENT',
+  STUDENT = 'STUDENT',
+}
