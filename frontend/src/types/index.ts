@@ -7,4 +7,5 @@ export * from './attendance.types';
 export * from './timetable.types';
 export * from './academics.types';
 export * from './analytics.types';
+export * from './dashboard.types';
 export * from './common.types';
