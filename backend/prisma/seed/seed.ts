@@ -73,7 +73,7 @@ async function main() {
 
   const roleRecords: Record<RoleCode, string> = {} as Record<RoleCode, string>;
   const roleNames: Record<RoleCode, string> = {
-    SUPER_ADMIN: 'Platform Super Admin',
+    SUPER_ADMIN: 'Super Admin',
     SCHOOL_ADMIN: 'School Administrator',
     TEACHER: 'Teacher',
     PARENT: 'Parent',
@@ -124,7 +124,7 @@ async function main() {
         roleId: roleRecords.SUPER_ADMIN,
         phone: '9999999999',
         pinOrPasswordHash: adminPasswordHash,
-        fullName: 'Platform Super Admin',
+        fullName: 'Super Admin',
         email: 'superadmin@schoolcomm.local',
         isPreRegistered: true,
         isActive: true,
@@ -192,7 +192,7 @@ async function main() {
       roleId: roleRecords.SCHOOL_ADMIN,
       phone: '9876543210',
       pinOrPasswordHash: adminPasswordHash,
-      fullName: 'Dr. Kavitha Raman',
+      fullName: 'Dr. Sumathi',
       email: 'principal@greenvalley.edu.in',
       isPreRegistered: true,
       isActive: true,

@@ -11,10 +11,25 @@ async function bootstrap() {
   const configService = app.get(ConfigService);
 
   app.setGlobalPrefix('api/v1');
+<<<<<<< Updated upstream
   app.use(
     helmet({
       contentSecurityPolicy: false,
       crossOriginResourcePolicy: { policy: 'cross-origin' },
+=======
+
+  app.use(
+    helmet({
+      crossOriginResourcePolicy: { policy: 'cross-origin' },
+      contentSecurityPolicy: {
+        directives: {
+          defaultSrc: [`'self'`],
+          styleSrc: [`'self'`, `'unsafe-inline'`],
+          imgSrc: [`'self'`, 'data:', 'validator.swagger.io'],
+          scriptSrc: [`'self'`, `'unsafe-inline'`, `'unsafe-eval'`],
+        },
+      },
+>>>>>>> Stashed changes
     }),
   );
 
@@ -63,10 +78,16 @@ async function bootstrap() {
   const port = configService.get<number>('app.port') ?? 3001;
   await app.listen(port);
 
+<<<<<<< Updated upstream
   Logger.log(`School Communication API running on http://localhost:${port}/api/v1`, 'Bootstrap');
   Logger.log(
     `Swagger UI available at http://localhost:${port}/docs, http://localhost:${port}/api/docs, and http://localhost:${port}/swagger`,
     'Bootstrap',
+=======
+  console.log(`🚀 ${appName} running at: http://localhost:${port}`);
+  console.log(
+    `📚 Swagger Documentation available at: http://localhost:${port}/docs, http://localhost:${port}/api/docs, and http://localhost:${port}/swagger`,
+>>>>>>> Stashed changes
   );
 }
 
